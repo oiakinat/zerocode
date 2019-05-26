@@ -27,7 +27,7 @@ public class UrlQueryParamsUtils {
         return httpUrl;
     }
 
-    public static List<NameValuePair> getListNameValuePairFromQueryMap(Map<String, Object> queryParamsMap) throws IOException {
+    public static UrlEncodedFormEntity getUrlEncodedFormEntityFromQueryMap(Map<String, Object> queryParamsMap) throws IOException {
         queryParamsMap = ofNullable(queryParamsMap).orElse(new HashMap<>());
         List<NameValuePair> nameValueList = new ArrayList<>();
         for (String key : queryParamsMap.keySet()) {
@@ -39,11 +39,11 @@ public class UrlQueryParamsUtils {
                 nameValueList.add(new BasicNameValuePair(key, queryParamsMap.get(key).toString()));
             }
         }
-        return nameValueList;
+        return new UrlEncodedFormEntity(nameValueList);
     }
 
     protected static String createQualifiedQueryParams(Map<String, Object> queryParamsMap) throws IOException {
-        HttpEntity httpEntity = new UrlEncodedFormEntity(getListNameValuePairFromQueryMap(queryParamsMap));
+        HttpEntity httpEntity = getUrlEncodedFormEntityFromQueryMap(queryParamsMap);
         String qualifiedQueryParam = EntityUtils.toString(httpEntity, "UTF-8");
 
         LOGGER.info("### qualifiedQueryParams : " + qualifiedQueryParam);

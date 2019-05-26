@@ -3,13 +3,10 @@ package org.jsmart.zerocode.core.httpclient;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
-import org.apache.http.NameValuePair;
 import org.apache.http.client.CookieStore;
 import org.apache.http.client.entity.EntityBuilder;
-import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.RequestBuilder;
-import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
@@ -24,8 +21,6 @@ import org.slf4j.LoggerFactory;
 import javax.net.ssl.SSLContext;
 import javax.ws.rs.core.Response;
 import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.nio.charset.Charset;
 import java.util.List;
 import java.util.Map;
@@ -33,7 +28,7 @@ import java.util.Map;
 import static org.apache.http.entity.ContentType.APPLICATION_JSON;
 import static org.jsmart.zerocode.core.httpclient.utils.FileUploadUtils.*;
 import static org.jsmart.zerocode.core.httpclient.utils.HeaderUtils.processFrameworkDefault;
-import static org.jsmart.zerocode.core.httpclient.utils.UrlQueryParamsUtils.getListNameValuePairFromQueryMap;
+import static org.jsmart.zerocode.core.httpclient.utils.UrlQueryParamsUtils.getUrlEncodedFormEntityFromQueryMap;
 import static org.jsmart.zerocode.core.httpclient.utils.UrlQueryParamsUtils.setQueryParams;
 import static org.jsmart.zerocode.core.utils.HelperJsonUtils.getContentAsItIsJson;
 
@@ -305,26 +300,14 @@ public class BasicHttpClient {
      * @throws IOException
      */
     public RequestBuilder createFormUrlEncodedRequestBuilder(String httpUrl, String methodName, String reqBodyAsString) throws IOException {
-        URI uri = null;
-        RequestBuilder requestBuilder = RequestBuilder.create(methodName);
+        RequestBuilder requestBuilder = RequestBuilder
+                .create(methodName)
+                .setUri(httpUrl);
         if (reqBodyAsString != null) {
             Map<String, Object> reqBodyMap = HelperJsonUtils.readObjectAsMap(reqBodyAsString);
-            List<NameValuePair> reqBody = getListNameValuePairFromQueryMap(reqBodyMap);
-            try {
-                URIBuilder builder = new URIBuilder(httpUrl);
-                builder.addParameters(reqBody);
-                uri = builder.build();
-            } catch (URISyntaxException e) {
-                LOGGER.error("###An error occurred while creating URI with parameters ", e);
-            }
-            HttpEntity httpEntity = new UrlEncodedFormEntity(reqBody);
+            HttpEntity httpEntity = getUrlEncodedFormEntityFromQueryMap(reqBodyMap);
             requestBuilder.setEntity(httpEntity);
             requestBuilder.setHeader(CONTENT_TYPE, APPLICATION_FORM_URL_ENCODED);
-        }
-        if (uri != null) {
-            requestBuilder.setUri(uri);
-        } else {
-            requestBuilder.setUri(httpUrl);
         }
         return requestBuilder;
     }

@@ -14,6 +14,8 @@ import org.junit.Rule;
 import org.junit.Test;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -76,15 +78,6 @@ public class BasicHttpClientTest {
     }
 
     @Test
-    public void createRequestBuilder_queryParamsAndRequestBodySet() throws IOException {
-        header.put("Content-Type", "application/x-www-form-urlencoded");
-        String reqBodyAsString = "{\"Name\":[\"Larry\", \"Paul\"],\"Company\":\"Amazon\",\"Title\":\"CEO\"}";
-        RequestBuilder requestBuilder = basicHttpClient.createRequestBuilder("/api/v1/founder?Name=Harry", "POST", header, reqBodyAsString);
-        String nameValuePairString = requestBuilder.getUri().getQuery();
-        assertThat(nameValuePairString, is("Name=Harry&Company=Amazon&Title=CEO&Name=Larry&Name=Paul"));
-    }
-
-    @Test
     public void test_queryParamEncodedChar() throws IOException {
         Map<String, Object> queryParamsMap = new HashMap<>();
         queryParamsMap.put("q1", "value1");
@@ -93,6 +86,17 @@ public class BasicHttpClientTest {
         String effectiveUrl = basicHttpClient.handleUrlAndQueryParams("http://abc.com", queryParamsMap);
 
         assertThat(effectiveUrl, is("http://abc.com?q1=value1&q2=value2&state%2Fregion=London+UK"));
+    }
+
+    @Test
+    public void test_queryParamWithArrays() throws IOException {
+        Map<String, Object> queryParamsMap = new HashMap<>();
+        queryParamsMap.put("q1", new ArrayList<>(Arrays.asList("value1", "value2")));
+        queryParamsMap.put("q2", new ArrayList<>(Arrays.asList(3, 4)));
+        queryParamsMap.put("q3", new ArrayList<>(Arrays.asList(1.9, 2.9)));
+        String effectiveUrl = basicHttpClient.handleUrlAndQueryParams("http://abc.com", queryParamsMap);
+
+        assertThat(effectiveUrl, is("http://abc.com?q1=value1&q1=value2&q2=3&q2=4&q3=1.9&q3=2.9"));
     }
 
     @Test

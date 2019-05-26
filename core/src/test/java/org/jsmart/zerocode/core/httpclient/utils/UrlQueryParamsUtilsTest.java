@@ -3,6 +3,8 @@ package org.jsmart.zerocode.core.httpclient.utils;
 import org.junit.Test;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -46,6 +48,18 @@ public class UrlQueryParamsUtilsTest {
         String qualifiedQueryParams = UrlQueryParamsUtils.createQualifiedQueryParams(queryParamsMap);
 
         assertThat(qualifiedQueryParams, is("q2=value2&state%2Fregion=singapore+north"));
+    }
+
+    @Test
+    public void testArraysIn_queryParams() throws IOException {
+        Map<String, Object> queryParamsMap = new HashMap<>();
+        queryParamsMap.put("q1", new ArrayList<>(Arrays.asList("value1", "value2")));
+        queryParamsMap.put("q2", new ArrayList<>(Arrays.asList(3, 4)));
+        queryParamsMap.put("q3", new ArrayList<>(Arrays.asList(1.9, 2.9)));
+
+        String qualifiedQueryParams = UrlQueryParamsUtils.createQualifiedQueryParams(queryParamsMap);
+
+        assertThat(qualifiedQueryParams, is("q1=value1&q1=value2&q2=3&q2=4&q3=1.9&q3=2.9"));
     }
 
 }
