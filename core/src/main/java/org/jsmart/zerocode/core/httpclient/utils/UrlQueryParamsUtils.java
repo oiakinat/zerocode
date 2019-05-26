@@ -27,13 +27,23 @@ public class UrlQueryParamsUtils {
         return httpUrl;
     }
 
-    protected static String createQualifiedQueryParams(Map<String, Object> queryParamsMap) throws IOException {
+    public static List<NameValuePair> getListNameValuePairFromQueryMap(Map<String, Object> queryParamsMap) throws IOException {
         queryParamsMap = ofNullable(queryParamsMap).orElse(new HashMap<>());
         List<NameValuePair> nameValueList = new ArrayList<>();
-        for(String key : queryParamsMap.keySet()) {
-            nameValueList.add(new BasicNameValuePair(key, queryParamsMap.get(key).toString()));
+        for (String key : queryParamsMap.keySet()) {
+            if (queryParamsMap.get(key) instanceof ArrayList) {
+                for (Object value : (ArrayList<Object>) queryParamsMap.get(key)) {
+                    nameValueList.add(new BasicNameValuePair(key, value.toString()));
+                }
+            } else {
+                nameValueList.add(new BasicNameValuePair(key, queryParamsMap.get(key).toString()));
+            }
         }
-        HttpEntity httpEntity = new UrlEncodedFormEntity(nameValueList);
+        return nameValueList;
+    }
+
+    protected static String createQualifiedQueryParams(Map<String, Object> queryParamsMap) throws IOException {
+        HttpEntity httpEntity = new UrlEncodedFormEntity(getListNameValuePairFromQueryMap(queryParamsMap));
         String qualifiedQueryParam = EntityUtils.toString(httpEntity, "UTF-8");
 
         LOGGER.info("### qualifiedQueryParams : " + qualifiedQueryParam);

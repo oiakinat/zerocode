@@ -67,6 +67,24 @@ public class BasicHttpClientTest {
     }
 
     @Test
+    public void createRequestBuilder_arrayInRequestBodyParam() throws IOException {
+        header.put("Content-Type", "application/x-www-form-urlencoded");
+        String reqBodyAsString = "{\"Name\":[\"Larry\", \"Paul\"],\"Company\":\"Amazon\",\"Title\":\"CEO\"}";
+        RequestBuilder requestBuilder = basicHttpClient.createRequestBuilder("/api/v1/founder", "POST", header, reqBodyAsString);
+        String nameValuePairString = EntityUtils.toString(requestBuilder.getEntity(), "UTF-8");
+        assertThat(nameValuePairString, is("Company=Amazon&Title=CEO&Name=Larry&Name=Paul"));
+    }
+
+    @Test
+    public void createRequestBuilder_queryParamsAndRequestBodySet() throws IOException {
+        header.put("Content-Type", "application/x-www-form-urlencoded");
+        String reqBodyAsString = "{\"Name\":[\"Larry\", \"Paul\"],\"Company\":\"Amazon\",\"Title\":\"CEO\"}";
+        RequestBuilder requestBuilder = basicHttpClient.createRequestBuilder("/api/v1/founder?Name=Harry", "POST", header, reqBodyAsString);
+        String nameValuePairString = requestBuilder.getUri().getQuery();
+        assertThat(nameValuePairString, is("Name=Harry&Company=Amazon&Title=CEO&Name=Larry&Name=Paul"));
+    }
+
+    @Test
     public void test_queryParamEncodedChar() throws IOException {
         Map<String, Object> queryParamsMap = new HashMap<>();
         queryParamsMap.put("q1", "value1");
